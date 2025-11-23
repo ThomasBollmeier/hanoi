@@ -33,6 +33,8 @@ function initGame() {
     Object.values(rods).forEach(rod => rod.innerHTML = '');
 
     // Create disks 
+    disks = [];
+
     for (let rodNum = 0; rodNum < game.rodsCount; rodNum++) {
         const rodDisks = game.getDisks(rodNum);
         const nDisks = rodDisks.length;

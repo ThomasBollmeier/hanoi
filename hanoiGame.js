@@ -47,7 +47,8 @@ export class HanoiGame {
         let fromRod = this._findRodWithDisk(this._diskCount);
         let toRod = 2;
         if (fromRod === toRod) {
-            return moves;
+            this._rods = currentState
+            return this._removeBackAndForthMoves(moves);
         }
         let auxiliaryRod = this._getAuxiliaryRod(fromRod, toRod);
         moves = moves.concat(this._calculateMoves(this._diskCount, fromRod, toRod, auxiliaryRod));
