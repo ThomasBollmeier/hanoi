@@ -14,8 +14,29 @@ export class HanoiGame {
         return this._rods.length;
     }
 
+    get isSolved() {
+        return this._rods[this._rods.length - 1].length === this._diskCount;
+    }
+
     getDisks(rodNumber) {
         return this._rods[rodNumber] || [];
+    }
+
+    move(fromRod, toRod) {
+        if (this._rods[fromRod].length === 0) {
+            return false
+        }
+
+        const disk = this._rods[fromRod][0];
+
+        if (this._rods[toRod].length > 0 && this._rods[toRod][0] < disk) {
+            return false;
+        }
+
+        this._rods[fromRod].shift();
+        this._rods[toRod].unshift(disk);
+
+        return true;
     }
 
     calculateMoves() {
@@ -88,20 +109,15 @@ export class HanoiGame {
         let moves = [];
         if (n === 1) {
             moves.push({ from: source, to: target });
-            this._move(source, target);
+            this.move(source, target);
             return moves;
         }
         moves = moves.concat(this._calculateMoves(n - 1, source, auxiliary, target));
         moves.push({ from: source, to: target });
-        this._move(source, target);
+        this.move(source, target);
         moves = moves.concat(this._calculateMoves(n - 1, auxiliary, target, source));
 
         return moves;
-    }
-
-    _move(fromRod, toRod) {
-        const disk = this._rods[fromRod].shift();
-        this._rods[toRod].unshift(disk);
     }
 
     _getAuxiliaryRod(source, target) {

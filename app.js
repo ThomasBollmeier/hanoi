@@ -16,6 +16,8 @@ let animationSpeed = 500; // ms
 let moves = [];
 let disks = [];
 let game;
+let selectedFromRod = null;
+let selectedToRod = null;
 
 function initGame() {
     const count = parseInt(diskCountInput.value);
@@ -59,17 +61,21 @@ async function animate() {
         isAnimating = false;
         solveBtn.disabled = false;
         diskCountInput.disabled = false;
-        statusDisplay.textContent = 'Solved!';
+        if (game.isSolved) {
+            statusDisplay.textContent = 'Solved!';
+        }
         return;
     }
 
     const move = moves.shift();
+    game.move(move.from, move.to);
+
     const fromRod = rods[move.from + 1];
     const toRod = rods[move.to + 1];
     const disk = fromRod.firstElementChild;
 
     if (!disk) {
-        console.error('No disk found on rod', move.from);
+        console.error('No disk found on rod', move.from + 1);
         return;
     }
 
@@ -86,7 +92,7 @@ async function animate() {
     // For now, let's just "teleport" logically but maybe add a small delay or class for effect?
     // Actually, let's try to make it slightly smoother by just updating the DOM after a delay
 
-    statusDisplay.textContent = `Moving disk from Rod ${move.from} to Rod ${move.to}`;
+    statusDisplay.textContent = `Moving disk from Rod ${move.from + 1} to Rod ${move.to + 1}`;
 
     // Move the element
     toRod.insertBefore(disk, toRod.firstChild);
@@ -102,23 +108,66 @@ async function animate() {
 solveBtn.addEventListener('click', () => {
     if (isAnimating) return;
 
-    moves = game.calculateMoves();
 
     isAnimating = true;
+    moves = game.calculateMoves();
+
+    selectedFromRod = null;
+    selectedToRod = null;
     solveBtn.disabled = true;
     diskCountInput.disabled = true;
+
     animate();
 });
 
 resetBtn.addEventListener('click', () => {
     isAnimating = false;
     moves = [];
+
+    selectedFromRod = null;
+    selectedToRod = null;
+
     initGame();
 });
 
 diskCountInput.addEventListener('change', initGame);
 
 randomizeCheckbox.addEventListener('change', initGame);
+
+for (let i = 1; i <= 3; i++) {
+    let rodDiv = document.querySelector(`#rod${i}`);
+    rodDiv.addEventListener('click', () => {
+        if (isAnimating) return;
+
+        if (selectedFromRod === null) {
+            selectedFromRod = i;
+            statusDisplay.textContent = `Selected Rod ${i} as source`;
+        } else if (selectedToRod === null) {
+            selectedToRod = i;
+            statusDisplay.textContent = `Selected Rod ${i} as destination`;
+
+            if (selectedFromRod === selectedToRod) {
+                statusDisplay.textContent = `Source and destination rods cannot be the same. Please select again.`;
+                selectedFromRod = null;
+                selectedToRod = null;
+                return;
+            }
+
+            const success = game.move(selectedFromRod - 1, selectedToRod - 1);
+            if (success) {
+                moves = [{ from: selectedFromRod - 1, to: selectedToRod - 1 }];
+                isAnimating = true;
+                animate();
+            } else {
+                statusDisplay.textContent = `Invalid move from Rod ${selectedFromRod} to Rod ${selectedToRod}. Please select again.`;
+            }
+
+            selectedFromRod = null;
+            selectedToRod = null;
+        }
+
+    });
+}
 
 // Initial setup
 initGame();
